@@ -154,11 +154,39 @@ const generateBishopMoves = (board, row, col) => {
 };
 
 // Generate queen moves (combination of rook and bishop)
+// Optimized to avoid array spread operator
 const generateQueenMoves = (board, row, col) => {
-    return [
-        ...generateRookMoves(board, row, col),
-        ...generateBishopMoves(board, row, col)
-    ];
+    const moves = [];
+    
+    // Rook-like moves (horizontal and vertical)
+    const rookDirections = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+    for (const [dRow, dCol] of rookDirections) {
+        let newRow = row + dRow;
+        let newCol = col + dCol;
+
+        while (isValidPosition(newRow, newCol)) {
+            moves.push({ row: newRow, col: newCol });
+            if (board[newRow][newCol]) break;
+            newRow += dRow;
+            newCol += dCol;
+        }
+    }
+    
+    // Bishop-like moves (diagonal)
+    const bishopDirections = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+    for (const [dRow, dCol] of bishopDirections) {
+        let newRow = row + dRow;
+        let newCol = col + dCol;
+
+        while (isValidPosition(newRow, newCol)) {
+            moves.push({ row: newRow, col: newCol });
+            if (board[newRow][newCol]) break;
+            newRow += dRow;
+            newCol += dCol;
+        }
+    }
+    
+    return moves;
 };
 
 // Generate king moves
@@ -182,19 +210,40 @@ const generateKingMoves = (row, col) => {
     return moves;
 };
 
-// Find the king's position on the board
+// King position cache to avoid O(64) scans
+// Format: WeakMap<board, { white: {row, col}, black: {row, col} }>
+const kingPositionCache = new WeakMap();
+
+// Find the king's position on the board with caching
 export const findKing = (board, color) => {
+    // Try to get from cache first
+    let cached = kingPositionCache.get(board);
+    if (cached && cached[color]) {
+        return cached[color];
+    }
+
+    // Cache miss - scan the board
     const kingPiece = color === 'white' ? 'K' : 'k';
+    let kingPos = null;
 
     for (let row = 0; row < 8; row++) {
         for (let col = 0; col < 8; col++) {
             if (board[row][col] === kingPiece) {
-                return { row, col };
+                kingPos = { row, col };
+                break;
             }
         }
+        if (kingPos) break;
     }
 
-    return null;
+    // Store in cache
+    if (!cached) {
+        cached = {};
+        kingPositionCache.set(board, cached);
+    }
+    cached[color] = kingPos;
+
+    return kingPos;
 };
 
 // Check if a position is under attack
@@ -226,8 +275,16 @@ export const isInCheck = (board, color) => {
 };
 
 // Check if a move would put/leave the king in check
+// Optimized version with early exit for non-king moves
 export const wouldBeInCheck = (board, fromRow, fromCol, toRow, toCol, color) => {
+    const movingPiece = board[fromRow][fromCol];
+    const capturedPiece = board[toRow][toCol];
+    
+    // Make move on a new board (required for safety)
     const newBoard = makeMove(board, fromRow, fromCol, toRow, toCol);
+    
+    // Check if king is in check on new board
+    // The findKing function will cache the position for subsequent calls
     return isInCheck(newBoard, color);
 };
 

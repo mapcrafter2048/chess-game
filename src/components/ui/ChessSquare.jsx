@@ -4,8 +4,9 @@ import { getSquareStyling, getPieceStyling } from "../helpers/squareStyling.js";
 
 /**
  * ChessSquare component - renders a single square on the chess board
+ * Memoized to prevent unnecessary re-renders when parent components update
  */
-const ChessSquare = ({
+const ChessSquare = React.memo(({
   row,
   col,
   piece,
@@ -59,6 +60,29 @@ const ChessSquare = ({
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  // Only re-render if these props actually change
+  return (
+    prevProps.row === nextProps.row &&
+    prevProps.col === nextProps.col &&
+    prevProps.piece === nextProps.piece &&
+    prevProps.isLightSquare === nextProps.isLightSquare &&
+    prevProps.isBoardFlipped === nextProps.isBoardFlipped &&
+    prevProps.highlightState.isSelected === nextProps.highlightState.isSelected &&
+    prevProps.highlightState.isLegalMove === nextProps.highlightState.isLegalMove &&
+    prevProps.highlightState.combineMode === nextProps.highlightState.combineMode &&
+    prevProps.highlightState.eligibleForCombine === nextProps.highlightState.eligibleForCombine &&
+    prevProps.highlightState.eligiblePartner === nextProps.highlightState.eligiblePartner &&
+    prevProps.highlightState.combineAnchor === nextProps.highlightState.combineAnchor &&
+    prevProps.highlightState.deCombineMode === nextProps.highlightState.deCombineMode &&
+    prevProps.highlightState.eligibleForDeCombine === nextProps.highlightState.eligibleForDeCombine &&
+    prevProps.highlightState.selectedHybrid === nextProps.highlightState.selectedHybrid &&
+    prevProps.highlightState.spawnSquare === nextProps.highlightState.spawnSquare &&
+    prevProps.highlightState.selectedSpawnSquare === nextProps.highlightState.selectedSpawnSquare
+  );
+});
+
+ChessSquare.displayName = 'ChessSquare';
 
 export default ChessSquare;

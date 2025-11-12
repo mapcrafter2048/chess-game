@@ -61,8 +61,35 @@ export const findBestMove = (gameState, depth) => {
         const { newBoard, newCastlingRights } = applyMove(board, move, currentTurn, castlingRights);
         const newTurn = currentTurn === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
 
-        // Calculate new position hash (for now, rehash entire position - will optimize later)
-        const newHash = zobrist.hashPosition(newBoard, newTurn, newCastlingRights, null);
+        // Calculate new position hash using incremental update when possible
+        let newHash;
+        if (move.type === 'normal') {
+            // Incremental hash update for normal moves (much faster than full rehash)
+            const fromSquare = move.from.row * 8 + move.from.col;
+            const toSquare = move.to.row * 8 + move.to.col;
+            const fromPiece = board[move.from.row][move.from.col];
+            const capturedPiece = board[move.to.row][move.to.col];
+            
+            newHash = zobrist.updateHashForNormalMove(
+                positionHash,
+                fromPiece,
+                fromSquare,
+                fromPiece, // piece after move (same unless promotion)
+                toSquare,
+                capturedPiece
+            );
+            
+            // Update hash for castling rights changes (if any)
+            newHash = updateHashForCastlingChanges(newHash, castlingRights, newCastlingRights);
+        } else if (move.type === 'castling') {
+            // Use specialized castling hash update
+            newHash = zobrist.updateHashForCastling(positionHash, currentTurn, move.side === 'kingside');
+            // Update for castling rights (both sides lost)
+            newHash = updateHashForCastlingChanges(newHash, castlingRights, newCastlingRights);
+        } else {
+            // For complex moves (promotion, combine, decombine), fall back to full rehash
+            newHash = zobrist.hashPosition(newBoard, newTurn, newCastlingRights, null);
+        }
 
         // Recursively evaluate (opponent's turn, so we minimize)
         const score = -alphaBetaSearch(
@@ -190,8 +217,34 @@ export const alphaBetaSearch = (board, currentTurn, depth, alpha, beta, castling
         const { newBoard, newCastlingRights } = applyMove(board, move, currentTurn, castlingRights);
         const newTurn = currentTurn === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
 
-        // Calculate new position hash (full rehash for now)
-        const newHash = zobrist.hashPosition(newBoard, newTurn, newCastlingRights, null);
+        // Calculate new position hash using incremental update when possible
+        let newHash;
+        if (move.type === 'normal') {
+            // Incremental hash update for normal moves
+            const fromSquare = move.from.row * 8 + move.from.col;
+            const toSquare = move.to.row * 8 + move.to.col;
+            const fromPiece = board[move.from.row][move.from.col];
+            const capturedPiece = board[move.to.row][move.to.col];
+            
+            newHash = zobrist.updateHashForNormalMove(
+                positionHash,
+                fromPiece,
+                fromSquare,
+                fromPiece,
+                toSquare,
+                capturedPiece
+            );
+            
+            // Update hash for castling rights changes
+            newHash = updateHashForCastlingChanges(newHash, castlingRights, newCastlingRights);
+        } else if (move.type === 'castling') {
+            // Use specialized castling hash update
+            newHash = zobrist.updateHashForCastling(positionHash, currentTurn, move.side === 'kingside');
+            newHash = updateHashForCastlingChanges(newHash, castlingRights, newCastlingRights);
+        } else {
+            // For complex moves, fall back to full rehash
+            newHash = zobrist.hashPosition(newBoard, newTurn, newCastlingRights, null);
+        }
 
         // Recursive search (negamax: opponent's best is our worst)
         const score = -alphaBetaSearch(
@@ -568,7 +621,52 @@ const updateCastlingRights = (board, move, currentTurn, castlingRights) => {
     }
 
     return newRights;
-};/**
+};
+
+/**
+ * Update hash for castling rights changes
+ * XORs out old rights and XORs in new rights
+ * 
+ * @param {BigInt} hash - Current hash
+ * @param {Object} oldRights - Old castling rights
+ * @param {Object} newRights - New castling rights
+ * @returns {BigInt} Updated hash
+ */
+const updateHashForCastlingChanges = (hash, oldRights, newRights) => {
+    let newHash = hash;
+    
+    // XOR out old rights
+    if (oldRights.white.kingSide) {
+        newHash ^= zobrist.castlingKeys.whiteKingSide;
+    }
+    if (oldRights.white.queenSide) {
+        newHash ^= zobrist.castlingKeys.whiteQueenSide;
+    }
+    if (oldRights.black.kingSide) {
+        newHash ^= zobrist.castlingKeys.blackKingSide;
+    }
+    if (oldRights.black.queenSide) {
+        newHash ^= zobrist.castlingKeys.blackQueenSide;
+    }
+    
+    // XOR in new rights
+    if (newRights.white.kingSide) {
+        newHash ^= zobrist.castlingKeys.whiteKingSide;
+    }
+    if (newRights.white.queenSide) {
+        newHash ^= zobrist.castlingKeys.whiteQueenSide;
+    }
+    if (newRights.black.kingSide) {
+        newHash ^= zobrist.castlingKeys.blackKingSide;
+    }
+    if (newRights.black.queenSide) {
+        newHash ^= zobrist.castlingKeys.blackQueenSide;
+    }
+    
+    return newHash;
+};
+
+/**
  * Count total legal moves for a position (for checkmate/stalemate detection)
  * 
  * @param {Array} board - Board state
