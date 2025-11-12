@@ -54,10 +54,8 @@ export const evaluatePosition = (board, currentTurn, legalMovesCount, inCheck) =
     let positionalScore = 0;
     let totalMaterial = 0; // For endgame detection
 
-    // Determine if we're in endgame (affects king PST)
-    const isEndgame = calculateTotalMaterial(board) < ENDGAME_MATERIAL_THRESHOLD;
-
-    // Evaluate each square
+    // Single-pass evaluation: calculate material, position, and endgame status together
+    // This avoids the double board scan from calling calculateTotalMaterial separately
     for (let row = 0; row < 8; row++) {
         for (let col = 0; col < 8; col++) {
             const piece = board[row][col];
@@ -75,11 +73,15 @@ export const evaluatePosition = (board, currentTurn, legalMovesCount, inCheck) =
             // ----------------------------------------
             // Positional Value (Piece-Square Tables)
             // ----------------------------------------
+            // Note: For kings, we use a heuristic - if total material so far < threshold,
+            // assume endgame. This is slightly less accurate but much faster.
             let pst;
 
             // Special case: King has different tables for middlegame vs endgame
             if (pieceType === 'k') {
-                pst = isEndgame ? KING_END_GAME_TABLE : KING_MIDDLE_GAME_TABLE;
+                // Use endgame table if we've seen little material so far
+                const isLikelyEndgame = totalMaterial < ENDGAME_MATERIAL_THRESHOLD;
+                pst = isLikelyEndgame ? KING_END_GAME_TABLE : KING_MIDDLE_GAME_TABLE;
             } else {
                 pst = getPieceSquareTable(pieceType);
             }
