@@ -1,33 +1,30 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { undoMove, redoMove, createInitialGameState } from "../../utils/gameState.js";
-import { COLORS } from "../../utils/constants.js";
 import { capitalizeColor } from "../helpers/messageHelpers.js";
 import { TIMER_CONFIG } from "../../config/timerConfig.js";
 
 /**
- * Hook to handle game control actions: undo, redo, reset, and resign.
+ * Hook to handle game control actions: undo, redo, and reset.
  * 
  * @param {Object} options - Hook options
  * @param {Object} options.gameState - Current game state
  * @param {Function} options.updateGameState - Callback to update game state
  * @param {Function} options.setMessage - Callback to set status message
  * @param {string} options.gameMode - Current game mode
- * @param {string} options.playerColor - Player's color ('white' or 'black')
  * @param {Object} options.timerStateRef - Ref to timer state
  * @param {Function} options.onResetToSinglePlayer - Callback when resetting from engine mode
  * @param {Function} options.clearSelection - Callback to clear piece selection
  * @param {Function} options.exitCombineMode - Callback to exit combine mode
  * @param {Function} options.exitDeCombineMode - Callback to exit de-combine mode
- * @returns {Object} - { handleUndo, handleRedo, resetGame, handleResign }
+ * @returns {Object} - { handleUndo, handleRedo, resetGame }
  */
 const useGameControls = ({
   gameState,
   updateGameState,
   setMessage,
   gameMode,
-  playerColor,
   timerStateRef = null,
   onResetToSinglePlayer = null,
   clearSelection,
@@ -75,12 +72,11 @@ const useGameControls = ({
     }
   }, [gameMode, gameState, updateGameState, clearSelection, setMessage]);
 
-  // Reset Game - accepts optional timerOverride for rematch scenarios
-  const resetGame = useCallback((timerOverride = null) => {
+  // Reset Game
+  const resetGame = useCallback(() => {
     // Reset timer if available
-    // Priority: timerOverride (from rematch) > selectedTimeControl > DEFAULT
     if (timerStateRef) {
-      const timeControlToUse = timerOverride || selectedTimeControl || TIMER_CONFIG.DEFAULT;
+      const timeControlToUse = selectedTimeControl || TIMER_CONFIG.DEFAULT;
       const initialTime = TIMER_CONFIG.getTimeValue(timeControlToUse);
       timerStateRef.current.whiteTime = initialTime;
       timerStateRef.current.blackTime = initialTime;
@@ -118,51 +114,10 @@ const useGameControls = ({
     selectedTimeControl,
   ]);
 
-  // Handle Resign
-  const handleResign = useCallback(() => {
-    if (gameState.gameStatus?.isGameOver) return;
-
-    const winner = playerColor === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
-    const newGameState = {
-      ...gameState,
-      gameStatus: {
-        isGameOver: true,
-        winner: winner,
-        isResignation: true,
-        resignedBy: playerColor,
-      },
-    };
-    updateGameState(newGameState);
-    setMessage(
-      `${capitalizeColor(playerColor)} resigned. ${capitalizeColor(winner)} wins!`
-    );
-  }, [gameState, playerColor, updateGameState, setMessage]);
-
-  // Listen for resignation (to notify opponent)
-  useEffect(() => {
-    if (
-      gameState.gameStatus?.isResignation &&
-      gameState.gameStatus?.resignedBy
-    ) {
-      const resignedBy = gameState.gameStatus.resignedBy;
-      const winner = gameState.gameStatus.winner;
-      // Show message regardless of which player we are
-      setMessage(
-        `${capitalizeColor(resignedBy)} resigned. ${capitalizeColor(winner)} wins!`
-      );
-    }
-  }, [
-    gameState.gameStatus?.isResignation,
-    gameState.gameStatus?.resignedBy,
-    gameState.gameStatus?.winner,
-    setMessage,
-  ]);
-
   return {
     handleUndo,
     handleRedo,
     resetGame,
-    handleResign,
   };
 };
 

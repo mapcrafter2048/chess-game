@@ -37,8 +37,8 @@ const useWebRTC = () => {
         console.log("Connection established successfully");
       } else if (state === "reconnecting") {
         setIsReconnecting(true);
-        // Don't set error - the yellow "Reconnecting..." banner in page.js handles this
-        console.log("Reconnecting...");
+        setError("Attempting to reconnect...");
+        console.log("Attempting to reconnect");
       } else if (state === "graceful-disconnect") {
         console.log("Received graceful disconnect notification");
         setIsConnected(false);

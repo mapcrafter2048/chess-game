@@ -17,8 +17,6 @@ import { useDeCombineMode } from "./hooks/useDeCombineMode.js";
 import { usePromotion } from "./hooks/usePromotion.js";
 import { useMoveHandler } from "./hooks/useMoveHandler.js";
 import useGameControls from "./hooks/useGameControls.js";
-import useRematch from "./hooks/useRematch.js";
-import useIdleTimeout from "./hooks/useIdleTimeout.js";
 import useGameStatus from "./hooks/useGameStatus.js";
 
 // UI Components
@@ -29,7 +27,6 @@ import CapturedPieces from "./ui/CapturedPieces.jsx";
 import GameControls from "./ui/GameControls.jsx";
 import PromotionDialog from "./ui/PromotionDialog.jsx";
 import DeCombineConfirmDialog from "./ui/DeCombineConfirmDialog.jsx";
-import RematchDialog from "./ui/RematchDialog.jsx";
 import GameLegend from "./ui/GameLegend.jsx";
 import Timer from "./ui/Timer.jsx";
 import BoardGrid from "./ui/BoardGrid.jsx";
@@ -46,8 +43,6 @@ const ChessBoard = ({
   isReconnecting = false,
   isAiThinking = false,
   onResetToSinglePlayer = null,
-  onDisconnect = null,
-  sendDisconnectNotification = null,
   selectedTimeControl = null,
 }) => {
   // Use external game state if provided, otherwise use internal state
@@ -194,13 +189,12 @@ const ChessBoard = ({
     isSelectedSpawnSquare,
   } = useDeCombineMode(gameState, updateGameState, setMessage);
 
-  // Game controls hook (undo, redo, reset, resign)
-  const { handleUndo, handleRedo, resetGame, handleResign } = useGameControls({
+  // Game controls hook (undo, redo, reset)
+  const { handleUndo, handleRedo, resetGame } = useGameControls({
     gameState,
     updateGameState,
     setMessage,
     gameMode,
-    playerColor,
     timerStateRef,
     onResetToSinglePlayer,
     clearSelection,
@@ -209,34 +203,7 @@ const ChessBoard = ({
     selectedTimeControl,
   });
 
-  // Idle timeout hook
-  const { clearIdleTimeout } = useIdleTimeout({
-    isGameOver: gameState.gameStatus?.isGameOver || false,
-    gameMode,
-    isConnected,
-    onDisconnect,
-    sendDisconnectNotification,
-    setMessage,
-  });
 
-  // Rematch hook
-  const {
-    rematchState,
-    handleRematchRequest,
-    handleAcceptRematch,
-    handleDeclineRematch,
-  } = useRematch({
-    gameState,
-    updateGameState,
-    setMessage,
-    playerColor,
-    resetGame,
-    clearIdleTimeout,
-    isConnected,
-    onDisconnect,
-    sendDisconnectNotification,
-    selectedTimeControl,
-  });
 
   // Keyboard handler
   useEffect(() => {
@@ -539,8 +506,6 @@ const ChessBoard = ({
           onCombineToggle={handleCombineToggle}
           onDeCombineToggle={handleDeCombineToggle}
           onReset={resetGame}
-          onResign={handleResign}
-          onRematchRequest={handleRematchRequest}
           combineMode={combineMode}
           deCombineMode={deCombine.mode}
           promotionMode={promotionDialog.isOpen}
@@ -564,14 +529,6 @@ const ChessBoard = ({
               onCancel={closeConfirmDialog}
             />
           )}
-
-        <RematchDialog
-          isOpen={rematchState.isOpen}
-          requestFrom={rematchState.requestFrom}
-          proposedTimer={rematchState.proposedTimer}
-          onAccept={handleAcceptRematch}
-          onDecline={handleDeclineRematch}
-        />
 
         <PromotionDialog
           isOpen={promotionDialog.isOpen}

@@ -446,23 +446,6 @@ const Navbar = ({
             {/* Connected State */}
             {isConnected && (
               <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4 w-full lg:w-auto">
-                {/* Timer dropdown - show when game is over for rematch */}
-                {gameState?.gameStatus?.isGameOver && (
-                  <select
-                    value={selectedTimeControl}
-                    onChange={(e) => onTimeControlChange(e.target.value)}
-                    className="text-white text-xs lg:text-sm px-2 py-1.5 lg:py-2 rounded-lg border bg-slate-700 hover:bg-slate-600 border-slate-600 cursor-pointer focus:outline-none focus:border-blue-400 transition-colors"
-                    title="Select time control for rematch"
-                  >
-                    {Object.entries(TIMER_CONFIG.TIME_CONTROLS).map(
-                      ([key, config]) => (
-                        <option key={key} value={key}>
-                          ⏱️ {config.label}
-                        </option>
-                      )
-                    )}
-                  </select>
-                )}
                 <div className="flex items-center text-green-400">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
                   <span className="text-xs lg:text-sm">Connected</span>

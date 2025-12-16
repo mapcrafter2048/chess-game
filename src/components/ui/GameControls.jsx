@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { capitalizeColor } from "../helpers/messageHelpers.js";
 
 /**
  * GameControls component - buttons for game actions
@@ -13,8 +12,6 @@ const GameControls = ({
   onCombineToggle,
   onDeCombineToggle,
   onReset,
-  onResign, // New prop
-  onRematchRequest, // New prop
   combineMode,
   deCombineMode,
   promotionMode,
@@ -22,7 +19,7 @@ const GameControls = ({
   canRedoMove,
   hasEligiblePairs,
   hasEligibleHybrids,
-  gameMode = "singlePlayer", // Add gameMode prop
+  gameMode = "singlePlayer",
 }) => {
   // Disable undo/redo when any special mode is active
   const isSpecialModeActive = combineMode || deCombineMode || promotionMode;
@@ -120,32 +117,6 @@ const GameControls = ({
           {deCombineMode ? "❌ Cancel" : "⚡ De-Combine"}
         </span>
       </button>
-
-      {/* Resign Button - shown in multiplayer when game is active */}
-      {!showUndoRedo && !showResetButton && !isGameOver && (
-        <button
-          onClick={onResign}
-          className="px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white font-bold rounded-lg sm:rounded-xl shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-red-400"
-          aria-label="Resign Game"
-        >
-          <span className="text-sm sm:text-base md:text-lg lg:text-xl">
-             🏳️ Resign
-          </span>
-        </button>
-      )}
-
-      {/* Rematch Button - shown in multiplayer when game is over */}
-      {!showUndoRedo && !showResetButton && isGameOver && (
-        <button
-          onClick={onRematchRequest}
-          className="px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-lg sm:rounded-xl shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-green-400 animate-pulse"
-          aria-label="Request Rematch"
-        >
-          <span className="text-sm sm:text-base md:text-lg lg:text-xl whitespace-nowrap">
-            🔄 Rematch
-          </span>
-        </button>
-      )}
 
       {/* Reset button - Hidden in multiplayer modes */}
       {showResetButton && (

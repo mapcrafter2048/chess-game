@@ -43,9 +43,6 @@ class WebRTCSignalingService {
 
     // Latency measurement
     this.pendingPings = new Map(); // Store ping timestamps for latency calculation
-
-    // Setup unload handler
-    this.setupUnloadHandler();
   }
 
   // Fetch TURN credentials from API
@@ -421,19 +418,16 @@ class WebRTCSignalingService {
     };
 
     channel.onerror = (error) => {
-      // Data channel errors are expected when peer disconnects - use warn instead of error
-      // Only log if there's actual error information
-      if (error?.error?.message) {
-        // Ignore normal close messages
-        if (error.error.message !== "User-Initiated Abort, reason=Close called") {
-          console.warn("Data channel error:", error.error.message);
-        }
-      } else if (this.dataChannel?.readyState !== 'closed') {
-        // Only log if channel isn't already closed (otherwise it's expected)
-        console.log("Data channel closed unexpectedly");
-      }
+      console.error("Data channel error:", error);
       // Update heartbeat to prevent false positive timeouts after error
       this.lastHeartbeatReceived = Date.now();
+      // Only log unexpected errors, not normal close operations
+      if (
+        error.error &&
+        error.error.message !== "User-Initiated Abort, reason=Close called"
+      ) {
+        // console.log('Data channel closed normally');
+      }
     };
   }
 
@@ -1000,25 +994,6 @@ class WebRTCSignalingService {
   }
 
   // Notify that reconnection failed
-  // Send disconnect notification to peer
-  sendDisconnectNotification() {
-    return this.sendData({
-      type: "disconnect",
-      data: {
-        type: "gracefulDisconnect",
-      },
-    });
-  }
-
-  // Handle window unload
-  setupUnloadHandler() {
-    if (typeof window !== "undefined") {
-      window.addEventListener("beforeunload", () => {
-        this.sendDisconnectNotification();
-      });
-    }
-  }
-
   notifyReconnectionFailed() {
     // console.log('All reconnection attempts failed');
     if (this.onConnectionStateChange) {
@@ -1026,24 +1001,30 @@ class WebRTCSignalingService {
     }
   }
 
-  // Helper to send data reliably over data channel
-  // This method is assumed to exist or will be added based on the user's intent
-  sendData(message) {
-    if (this.dataChannel && this.dataChannel.readyState === "open") {
-      try {
-        const payload = JSON.stringify(message);
-        this.dataChannel.send(payload);
-        // console.log("[SYNC DEBUG] Data sent successfully:", message.type);
+  // Send graceful disconnect notification
+  sendDisconnectNotification() {
+    try {
+      if (this.dataChannel && this.dataChannel.readyState === "open") {
+        // console.log('Sending graceful disconnect notification');
+        this.dataChannel.send(
+          JSON.stringify({
+            type: "disconnect",
+            data: {
+              type: "gracefulDisconnect",
+              message: "Player left the game",
+            },
+            timestamp: Date.now(),
+          })
+        );
         return true;
-      } catch (error) {
-        console.error("Error sending data:", error);
-        return false;
-      }
-    } else {
+      } else {
         // console.log('Data channel not available for disconnect notification');
         return false;
       }
-
+    } catch (error) {
+      // console.log('Could not send disconnect notification (channel likely closed):', error.message);
+      return false;
+    }
   }
 
   // Send game state through data channel
