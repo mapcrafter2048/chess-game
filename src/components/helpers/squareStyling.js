@@ -126,9 +126,11 @@ export const getPieceStyling = (piece) => {
   // Base styling for all pieces
   const baseStyle = {
     textShadow: isWhitePiece
-      ? "3px 3px 6px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.5)"
-      : "2px 2px 4px rgba(255,255,255,1), -1px -1px 2px rgba(255,255,255,0.6)",
-    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
+      ? "2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.4)"
+      : "1px 1px 3px rgba(255,255,255,0.6), -1px -1px 2px rgba(255,255,255,0.3)",
+    filter: isWhitePiece 
+      ? "drop-shadow(0 5px 12px rgba(0,0,0,0.7))"
+      : "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
     transform: "translateY(0.1em)", // Move all pieces down
     display: "inline-block",
   };

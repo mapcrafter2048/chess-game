@@ -447,7 +447,7 @@ const ChessBoard = ({
   };
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-48px)] bg-[var(--bg-primary)] overflow-x-hidden">
+    <div className="flex flex-col flex-1 min-h-0 bg-[var(--bg-primary)] overflow-x-hidden">
       {/* Status Strip */}
       <div className="w-full px-3 py-1.5 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] text-center flex-shrink-0">
         <span className="text-sm font-medium text-[var(--text-primary)]">
@@ -458,7 +458,7 @@ const ChessBoard = ({
       {/* ====== MOBILE LAYOUT ====== */}
       <div className="mobile-layout flex-col">
         {/* Board - at top */}
-        <div className="flex-shrink-0 flex justify-center p-2">
+        <div className="flex-shrink-0 flex justify-center">
           <div className="flex flex-col items-center w-full">
             {showTimers && timerStateRef && (
               <div className="w-full max-w-[90vw] mb-1">
@@ -561,8 +561,8 @@ const ChessBoard = ({
       </div>
 
       {/* ====== DESKTOP LAYOUT ====== */}
-      <div className="desktop-layout flex-1 justify-center min-h-0 overflow-hidden">
-        <div className="flex h-full w-full max-w-[1200px] mx-auto gap-4">
+      <div className="desktop-layout flex-1 justify-center items-center min-h-0 overflow-hidden py-4">
+        <div className="flex w-full max-w-[1200px] mx-auto gap-4">
           {/* Board area */}
           <div className="board-container flex items-center justify-center">
             <div className="flex flex-col items-center">
