@@ -45,9 +45,6 @@ const ChessSquare = ({
       {rankLabel && (
         <span
           className={`board-coord board-coord-rank ${coordColorClass}`}
-          style={{
-            transform: isBoardFlipped ? "rotate(180deg)" : "rotate(0deg)",
-          }}
         >
           {rankLabel}
         </span>
@@ -57,9 +54,6 @@ const ChessSquare = ({
       {fileLabel && (
         <span
           className={`board-coord board-coord-file ${coordColorClass}`}
-          style={{
-            transform: isBoardFlipped ? "rotate(180deg)" : "rotate(0deg)",
-          }}
         >
           {fileLabel}
         </span>
@@ -68,9 +62,6 @@ const ChessSquare = ({
       {piece && (
         <div
           className="relative transform transition-transform pointer-events-none"
-          style={{
-            transform: isBoardFlipped ? "rotate(180deg)" : "rotate(0deg)",
-          }}
         >
           <span
             className={`chess-piece-icon select-none ${pieceColorClass}`}

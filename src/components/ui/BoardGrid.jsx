@@ -7,9 +7,12 @@ import ChessSquare from "./ChessSquare.jsx";
  * Component that renders the 8x8 chess board grid with coordinates
  * INSIDE the squares (like chess.com) for maximum board size on small screens.
  * 
+ * Instead of CSS rotate(180deg) to flip the board, we reverse the iteration
+ * order of rows and columns. This keeps all CSS positioning (label anchors,
+ * piece styling, etc.) working identically in both orientations.
+ * 
  * - File letters (a-h) appear in the bottom-row squares
  * - Rank numbers (1-8) appear in the left-column squares
- * - Both labels share the same square (bottom-left corner gets both)
  */
 const BoardGrid = ({
   gameState,
@@ -32,13 +35,16 @@ const BoardGrid = ({
   // Event handlers
   handleSquareClick,
 }) => {
-  const files = isBoardFlipped
-    ? ["h", "g", "f", "e", "d", "c", "b", "a"]
-    : ["a", "b", "c", "d", "e", "f", "g", "h"];
+  // Build the visual row/col order.
+  // Normal (white):  rows 0→7, cols 0→7  (rank 8 at top, file 'a' at left)
+  // Flipped (black): rows 7→0, cols 7→0  (rank 1 at top, file 'h' at left)
+  const rowOrder = isBoardFlipped
+    ? [7, 6, 5, 4, 3, 2, 1, 0]
+    : [0, 1, 2, 3, 4, 5, 6, 7];
 
-  const ranks = isBoardFlipped
-    ? [1, 2, 3, 4, 5, 6, 7, 8]
-    : [8, 7, 6, 5, 4, 3, 2, 1];
+  const colOrder = isBoardFlipped
+    ? [7, 6, 5, 4, 3, 2, 1, 0]
+    : [0, 1, 2, 3, 4, 5, 6, 7];
 
   return (
     <div className="flex flex-col items-center">
@@ -46,27 +52,27 @@ const BoardGrid = ({
       <div
         className="grid grid-cols-8 gap-0 overflow-hidden"
         style={{
-          transform: isBoardFlipped ? "rotate(180deg)" : "rotate(0deg)",
-          willChange: "transform",
           aspectRatio: "1 / 1",
           gridAutoRows: "1fr",
         }}
       >
-        {gameState.board.map((row, rowIndex) =>
-          row.map((piece, colIndex) => {
+        {rowOrder.map((rowIndex, visualRowIdx) =>
+          colOrder.map((colIndex, visualColIdx) => {
+            const piece = gameState.board[rowIndex][colIndex];
             const isLightSquare = (rowIndex + colIndex) % 2 === 0;
 
-            // When flipped 180deg, index 7 becomes the visual left edge, and index 0 becomes the visual bottom edge
-            // Show rank label on the visual left edge
-            const isFirstCol = isBoardFlipped ? colIndex === 7 : colIndex === 0;
-            // Show file label on the visual bottom edge
-            const isLastRow = isBoardFlipped ? rowIndex === 0 : rowIndex === 7;
+            // Labels always on the visual left column and visual bottom row.
+            // Since we control iteration order, visualRowIdx/visualColIdx give
+            // us the screen position directly — no CSS rotation to worry about.
+            const isLeftEdge = visualColIdx === 0;
+            const isBottomEdge = visualRowIdx === 7;
 
-            // Get the rank number for this row
-            // Row 0 = rank 8, Row 7 = rank 1 (standard orientation)
-            // When flipped, CSS transform handles it, so labels rotate with the board
-            const rankLabel = isFirstCol ? (8 - rowIndex).toString() : null;
-            const fileLabel = isLastRow ? String.fromCharCode(97 + colIndex) : null;
+            // Rank = 8 - rowIndex (row 0 in the array is always rank 8)
+            const rankLabel = isLeftEdge ? (8 - rowIndex).toString() : null;
+            // File = 'a' + colIndex (col 0 in the array is always file 'a')
+            const fileLabel = isBottomEdge
+              ? String.fromCharCode(97 + colIndex)
+              : null;
 
             // Last move highlighting logic
             let isLastMoveSource = false;
@@ -145,7 +151,7 @@ const BoardGrid = ({
                 isLightSquare={isLightSquare}
                 highlightState={highlightState}
                 onClick={handleSquareClick}
-                isBoardFlipped={isBoardFlipped}
+                isBoardFlipped={false}
                 rankLabel={rankLabel}
                 fileLabel={fileLabel}
               />
