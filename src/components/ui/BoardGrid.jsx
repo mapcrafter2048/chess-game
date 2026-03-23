@@ -56,15 +56,11 @@ const BoardGrid = ({
           row.map((piece, colIndex) => {
             const isLightSquare = (rowIndex + colIndex) % 2 === 0;
 
-            // Determine which file/rank display index we're at
-            // The visual row index and col index (accounting for flip done via CSS transform)
-            const visualRow = rowIndex;
-            const visualCol = colIndex;
-
-            // Show rank label on the first column (left edge)
-            const isFirstCol = visualCol === 0;
-            // Show file label on the last row (bottom edge)
-            const isLastRow = visualRow === 7;
+            // When flipped 180deg, index 7 becomes the visual left edge, and index 0 becomes the visual bottom edge
+            // Show rank label on the visual left edge
+            const isFirstCol = isBoardFlipped ? colIndex === 7 : colIndex === 0;
+            // Show file label on the visual bottom edge
+            const isLastRow = isBoardFlipped ? rowIndex === 0 : rowIndex === 7;
 
             // Get the rank number for this row
             // Row 0 = rank 8, Row 7 = rank 1 (standard orientation)
