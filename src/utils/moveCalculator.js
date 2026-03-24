@@ -11,8 +11,29 @@ const copyBoard = (board) => {
   return board.map((row) => [...row]);
 };
 
-const makeMove = (board, fromRow, fromCol, toRow, toCol) => {
+const makeMove = (
+  board,
+  fromRow,
+  fromCol,
+  toRow,
+  toCol,
+  enPassantTarget = null
+) => {
   const newBoard = copyBoard(board);
+  const movingPiece = newBoard[fromRow][fromCol];
+
+  const isEnPassantCapture =
+    movingPiece &&
+    movingPiece.toLowerCase() === "p" &&
+    enPassantTarget &&
+    toRow === enPassantTarget.row &&
+    toCol === enPassantTarget.col &&
+    !newBoard[toRow][toCol];
+
+  if (isEnPassantCapture) {
+    newBoard[enPassantTarget.captureRow][enPassantTarget.captureCol] = "";
+  }
+
   newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
   newBoard[fromRow][fromCol] = "";
   return newBoard;
