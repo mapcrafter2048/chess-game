@@ -169,7 +169,7 @@ class WorkerManager {
      * @param {Object} params - Search parameters
      * @returns {Promise<Object>} Best move and metadata
      */
-    async searchParallel({ board, currentTurn, castlingRights, moves, depth }) {
+    async searchParallel({ board, currentTurn, castlingRights, enPassantTarget, moves, depth }) {
         if (!this.isInitialized) {
             throw new Error('WorkerManager not initialized');
         }
@@ -192,12 +192,13 @@ class WorkerManager {
         // Send search tasks to workers
         const searchPromises = moveBatches.map((batch, workerIndex) => {
             return this._searchWithWorker(workerIndex, {
-                board,
-                currentTurn,
-                castlingRights,
-                movesToSearch: batch,
-                depth,
-                timeoutMs: SEARCH_CONFIG.MAX_SEARCH_TIME_MS
+                    board,
+                    currentTurn,
+                    castlingRights,
+                    enPassantTarget,
+                    movesToSearch: batch,
+                    depth,
+                    timeoutMs: SEARCH_CONFIG.MAX_SEARCH_TIME_MS
             });
         });
 

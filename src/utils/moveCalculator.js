@@ -19,7 +19,13 @@ const makeMove = (board, fromRow, fromCol, toRow, toCol) => {
 };
 
 // Calculate all possible legal moves for a piece at a given position
-export const calculateLegalMoves = (board, row, col, currentTurn) => {
+export const calculateLegalMoves = (
+  board,
+  row,
+  col,
+  currentTurn,
+  enPassantTarget = null
+) => {
   const piece = board[row][col];
 
   if (!piece) return [];
@@ -33,11 +39,27 @@ export const calculateLegalMoves = (board, row, col, currentTurn) => {
   const pieceType = piece.toLowerCase();
 
   // Generate all possible moves based on piece type
-  const possibleMoves = generatePossibleMoves(board, row, col, pieceType);
+  const possibleMoves = generatePossibleMoves(
+    board,
+    row,
+    col,
+    pieceType,
+    enPassantTarget
+  );
 
   // Filter to only valid moves
   for (const move of possibleMoves) {
-    if (isValidMove(board, row, col, move.row, move.col)) {
+    if (
+      isValidMove(
+        board,
+        row,
+        col,
+        move.row,
+        move.col,
+        false,
+        enPassantTarget
+      )
+    ) {
       legalMoves.push(move);
     }
   }
@@ -46,7 +68,7 @@ export const calculateLegalMoves = (board, row, col, currentTurn) => {
 };
 
 // Generate possible moves for each piece type
-const generatePossibleMoves = (board, row, col, pieceType) => {
+const generatePossibleMoves = (board, row, col, pieceType, enPassantTarget) => {
   // Handle hybrid pieces
   if (isHybridPiece(pieceType)) {
     return generateHybridMoves(board, row, col);
@@ -54,7 +76,7 @@ const generatePossibleMoves = (board, row, col, pieceType) => {
 
   switch (pieceType) {
     case PIECES.PAWN:
-      return generatePawnMoves(board, row, col);
+      return generatePawnMoves(board, row, col, enPassantTarget);
     case PIECES.ROOK:
       return generateRookMoves(board, row, col);
     case PIECES.KNIGHT:
@@ -71,7 +93,7 @@ const generatePossibleMoves = (board, row, col, pieceType) => {
 };
 
 // Generate pawn moves
-const generatePawnMoves = (board, row, col) => {
+const generatePawnMoves = (board, row, col, enPassantTarget) => {
   const moves = [];
   const piece = board[row][col];
   const isWhite = piece === piece.toUpperCase();
@@ -279,9 +301,17 @@ export const wouldBeInCheck = (
   fromCol,
   toRow,
   toCol,
-  color
+  color,
+  enPassantTarget = null
 ) => {
-  const newBoard = makeMove(board, fromRow, fromCol, toRow, toCol);
+  const newBoard = makeMove(
+    board,
+    fromRow,
+    fromCol,
+    toRow,
+    toCol,
+    enPassantTarget
+  );
   return isInCheck(newBoard, color);
 };
 

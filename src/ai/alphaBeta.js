@@ -38,7 +38,7 @@ let nodesSearched = 0;
  * @returns {Object|null} Best move object or null if no legal moves
  */
 export const findBestMove = (gameState, depth) => {
-  const { board, currentTurn, castlingRights } = gameState;
+  const { board, currentTurn, castlingRights, enPassantTarget } = gameState;
 
   // Reset TT stats and node counter for this search
   transpositionTable.resetStats();
@@ -50,11 +50,16 @@ export const findBestMove = (gameState, depth) => {
     board,
     currentTurn,
     castlingRights,
-    null
+    enPassantTarget
   );
 
   // Generate all legal moves
-  const allMoves = getAllLegalMoves(board, currentTurn, castlingRights);
+  const allMoves = getAllLegalMoves(
+    board,
+    currentTurn,
+    castlingRights,
+    enPassantTarget
+  );
 
   if (allMoves.length === 0) {
     return null; // No legal moves (checkmate or stalemate)
@@ -71,11 +76,12 @@ export const findBestMove = (gameState, depth) => {
   // Search each move
   for (const move of orderedMoves) {
     // Apply move and get updated castling rights
-    const { newBoard, newCastlingRights } = applyMove(
+    const { newBoard, newCastlingRights, newEnPassantTarget } = applyMove(
       board,
       move,
       currentTurn,
-      castlingRights
+      castlingRights,
+      enPassantTarget
     );
     const newTurn = currentTurn === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
 
@@ -84,7 +90,7 @@ export const findBestMove = (gameState, depth) => {
       newBoard,
       newTurn,
       newCastlingRights,
-      null
+      newEnPassantTarget
     );
 
     // Recursively evaluate (opponent's turn, so we minimize)
@@ -95,6 +101,7 @@ export const findBestMove = (gameState, depth) => {
       -beta,
       -alpha,
       newCastlingRights,
+      newEnPassantTarget,
       newHash // ✅ Pass position hash
     );
 
@@ -200,6 +207,7 @@ export const alphaBetaSearch = (
   alpha,
   beta,
   castlingRights,
+  enPassantTarget,
   positionHash
 ) => {
   // Increment node counter
@@ -214,7 +222,12 @@ export const alphaBetaSearch = (
   }
 
   // Terminal depth or terminal position check
-  const allMoves = getAllLegalMoves(board, currentTurn, castlingRights);
+  const allMoves = getAllLegalMoves(
+    board,
+    currentTurn,
+    castlingRights,
+    enPassantTarget
+  );
   const inCheck = isInCheck(board, currentTurn);
 
   if (depth === 0 || allMoves.length === 0) {
@@ -245,11 +258,12 @@ export const alphaBetaSearch = (
   // Search each move
   for (const move of orderedMoves) {
     // Apply move and get updated castling rights
-    const { newBoard, newCastlingRights } = applyMove(
+    const { newBoard, newCastlingRights, newEnPassantTarget } = applyMove(
       board,
       move,
       currentTurn,
-      castlingRights
+      castlingRights,
+      enPassantTarget
     );
     const newTurn = currentTurn === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
 
@@ -258,7 +272,7 @@ export const alphaBetaSearch = (
       newBoard,
       newTurn,
       newCastlingRights,
-      null
+      newEnPassantTarget
     );
 
     // Recursive search (negamax: opponent's best is our worst)
@@ -269,6 +283,7 @@ export const alphaBetaSearch = (
       -beta,
       -alpha,
       newCastlingRights,
+      newEnPassantTarget,
       newHash // ✅ Pass position hash
     );
 
@@ -348,10 +363,15 @@ export const findBestMoveParallel = async (gameState, depth) => {
     return findBestMove(gameState, depth);
   }
 
-  const { board, currentTurn, castlingRights } = gameState;
+  const { board, currentTurn, castlingRights, enPassantTarget } = gameState;
 
   // Generate and order all legal moves
-  const allMoves = getAllLegalMoves(board, currentTurn, castlingRights);
+  const allMoves = getAllLegalMoves(
+    board,
+    currentTurn,
+    castlingRights,
+    enPassantTarget
+  );
 
   if (allMoves.length === 0) {
     return null; // No legal moves
@@ -365,6 +385,7 @@ export const findBestMoveParallel = async (gameState, depth) => {
       board,
       currentTurn,
       castlingRights,
+      enPassantTarget,
       moves: orderedMoves,
       depth,
     });

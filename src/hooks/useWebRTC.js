@@ -300,6 +300,7 @@ const useWebRTC = () => {
     connectionId,
     connectionState,
     error,
+    setError,
 
     // Game State
     gameMode,

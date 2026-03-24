@@ -14,6 +14,7 @@ import {
   addMoveToHistory,
   addCapturedPiece,
   saveStateForUndo,
+  getEnPassantTargetAfterMove,
 } from "../../utils/gameState.js";
 import { canCastle, executeCastleMove } from "../helpers/castlingLogic.js";
 import {
@@ -79,6 +80,7 @@ export const useMoveHandler = (
         currentTurn: newTurn,
         moveHistory: newMoveHistory,
         castlingRights: newCastlingRights,
+        enPassantTarget: null,
       });
       setMessage(statusMessage);
       setSelectedSquare(null);
@@ -183,7 +185,8 @@ export const useMoveHandler = (
               fromCol,
               row,
               col,
-              gameState.currentTurn
+              gameState.currentTurn,
+              gameState.enPassantTarget
             )
           ) {
             setMessage(
@@ -203,7 +206,16 @@ export const useMoveHandler = (
           const promotionRank = gameState.currentTurn === "white" ? 0 : 7;
 
           if (isPawn && row === promotionRank) {
-            const capturedPiece = gameState.board[row][col];
+            const isEnPassantMove =
+              !!gameState.enPassantTarget &&
+              row === gameState.enPassantTarget.row &&
+              col === gameState.enPassantTarget.col &&
+              !gameState.board[row][col];
+            const capturedPiece = isEnPassantMove
+              ? gameState.board[gameState.enPassantTarget.captureRow][
+                  gameState.enPassantTarget.captureCol
+                ]
+              : gameState.board[row][col];
             openPromotionDialog(fromRow, fromCol, row, col, capturedPiece);
             setSelectedSquare(null);
             setLegalMoves([]);
@@ -214,15 +226,33 @@ export const useMoveHandler = (
           const stateWithUndo = saveStateForUndo(gameState);
 
           // Execute the move
-          const capturedPiece = gameState.board[row][col];
+          const isEnPassantMove =
+            isPawn &&
+            !!gameState.enPassantTarget &&
+            row === gameState.enPassantTarget.row &&
+            col === gameState.enPassantTarget.col &&
+            !gameState.board[row][col];
+          const capturedPiece = isEnPassantMove
+            ? gameState.board[gameState.enPassantTarget.captureRow][
+                gameState.enPassantTarget.captureCol
+              ]
+            : gameState.board[row][col];
           const newBoard = makeMove(
+            gameState.board,
+            fromRow,
+            fromCol,
+            row,
+            col,
+            gameState.enPassantTarget
+          );
+          const newTurn = switchTurn(gameState.currentTurn);
+          const newEnPassantTarget = getEnPassantTargetAfterMove(
             gameState.board,
             fromRow,
             fromCol,
             row,
             col
           );
-          const newTurn = switchTurn(gameState.currentTurn);
 
           // Update castling rights
           let newCastlingRights = { ...stateWithUndo.castlingRights };
@@ -274,6 +304,7 @@ export const useMoveHandler = (
             piece: gameState.board[fromRow][fromCol],
             captured: capturedPiece,
             turn: gameState.currentTurn,
+            ...(isEnPassantMove ? { type: "enPassant" } : {}),
           };
           const newMoveHistory = addMoveToHistory(
             stateWithUndo.moveHistory,
@@ -294,6 +325,7 @@ export const useMoveHandler = (
             moveHistory: newMoveHistory,
             capturedPieces: newCapturedPieces,
             castlingRights: newCastlingRights,
+            enPassantTarget: newEnPassantTarget,
           });
           setMessage(statusMessage);
           setSelectedSquare(null);
@@ -307,7 +339,8 @@ export const useMoveHandler = (
             gameState.board,
             row,
             col,
-            gameState.currentTurn
+            gameState.currentTurn,
+            gameState.enPassantTarget
           );
           const safeMoves = moves.filter(
             (move) =>
@@ -317,7 +350,8 @@ export const useMoveHandler = (
                 col,
                 move.row,
                 move.col,
-                gameState.currentTurn
+                gameState.currentTurn,
+                gameState.enPassantTarget
               )
           );
 
@@ -380,7 +414,8 @@ export const useMoveHandler = (
             gameState.board,
             row,
             col,
-            gameState.currentTurn
+            gameState.currentTurn,
+            gameState.enPassantTarget
           );
           const safeMoves = moves.filter(
             (move) =>
@@ -390,7 +425,8 @@ export const useMoveHandler = (
                 col,
                 move.row,
                 move.col,
-                gameState.currentTurn
+                gameState.currentTurn,
+                gameState.enPassantTarget
               )
           );
 

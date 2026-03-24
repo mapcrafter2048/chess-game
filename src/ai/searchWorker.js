@@ -52,6 +52,7 @@ const alphaBetaSearch = (
   alpha,
   beta,
   castlingRights,
+  enPassantTarget,
   positionHash
 ) => {
   // Check for timeout
@@ -68,7 +69,12 @@ const alphaBetaSearch = (
   }
 
   // Terminal node check
-  const allMoves = getAllLegalMoves(board, currentTurn, castlingRights);
+  const allMoves = getAllLegalMoves(
+    board,
+    currentTurn,
+    castlingRights,
+    enPassantTarget
+  );
   const inCheck = isInCheck(board, currentTurn);
 
   if (depth === 0 || allMoves.length === 0) {
@@ -92,18 +98,19 @@ const alphaBetaSearch = (
 
   // Search each move
   for (const move of orderedMoves) {
-    const { newBoard, newCastlingRights } = applyMove(
+    const { newBoard, newCastlingRights, newEnPassantTarget } = applyMove(
       board,
       move,
       currentTurn,
-      castlingRights
+      castlingRights,
+      enPassantTarget
     );
     const newTurn = currentTurn === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
     const newHash = zobrist.hashPosition(
       newBoard,
       newTurn,
       newCastlingRights,
-      null
+      newEnPassantTarget
     );
 
     const score = -alphaBetaSearch(
@@ -113,6 +120,7 @@ const alphaBetaSearch = (
       -beta,
       -alpha,
       newCastlingRights,
+      newEnPassantTarget,
       newHash
     );
 
@@ -181,6 +189,7 @@ self.onmessage = (event) => {
           board,
           currentTurn,
           castlingRights,
+          enPassantTarget,
           movesToSearch,
           depth,
           timeoutMs,
@@ -199,7 +208,7 @@ self.onmessage = (event) => {
           board,
           currentTurn,
           castlingRights,
-          null
+          enPassantTarget
         );
 
         let bestMove = null;
@@ -218,11 +227,12 @@ self.onmessage = (event) => {
 
           movesSearched++;
 
-          const { newBoard, newCastlingRights } = applyMove(
+          const { newBoard, newCastlingRights, newEnPassantTarget } = applyMove(
             board,
             move,
             currentTurn,
-            castlingRights
+            castlingRights,
+            enPassantTarget
           );
           const newTurn =
             currentTurn === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
@@ -230,7 +240,7 @@ self.onmessage = (event) => {
             newBoard,
             newTurn,
             newCastlingRights,
-            null
+            newEnPassantTarget
           );
 
           const score = -alphaBetaSearch(
@@ -240,6 +250,7 @@ self.onmessage = (event) => {
             -beta,
             -alpha,
             newCastlingRights,
+            newEnPassantTarget,
             newHash
           );
 

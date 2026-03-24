@@ -9,7 +9,12 @@ import {
   isInCheck,
   wouldBeInCheck,
 } from "../utils/moveCalculator.js";
-import { makeMove, copyBoard, executeCombination } from "../utils/gameState.js";
+import {
+  makeMove,
+  copyBoard,
+  executeCombination,
+  getEnPassantTargetAfterMove,
+} from "../utils/gameState.js";
 import {
   findEligiblePairs,
   canReachForCombine,
@@ -36,7 +41,12 @@ import {
  * @param {Object} castlingRights - Castling rights { white: {...}, black: {...} }
  * @returns {Array} Array of move objects
  */
-export const getAllLegalMoves = (board, color, castlingRights) => {
+export const getAllLegalMoves = (
+  board,
+  color,
+  castlingRights,
+  enPassantTarget = null
+) => {
   const allMoves = [];
 
   // ============================================
@@ -47,11 +57,27 @@ export const getAllLegalMoves = (board, color, castlingRights) => {
       const piece = board[row][col];
       if (!piece || getPieceColor(piece) !== color) continue;
 
-      const moves = calculateLegalMoves(board, row, col, color);
+      const moves = calculateLegalMoves(
+        board,
+        row,
+        col,
+        color,
+        enPassantTarget
+      );
 
       for (const move of moves) {
         // CRITICAL: Filter out moves that would leave king in check
-        if (wouldBeInCheck(board, row, col, move.row, move.col, color)) {
+        if (
+          wouldBeInCheck(
+            board,
+            row,
+            col,
+            move.row,
+            move.col,
+            color,
+            enPassantTarget
+          )
+        ) {
           continue; // Skip this move - it's illegal
         }
 
@@ -74,10 +100,17 @@ export const getAllLegalMoves = (board, color, castlingRights) => {
           }
         } else {
           // Normal move or capture
+          const isEnPassantMove =
+            isPawn &&
+            enPassantTarget &&
+            move.row === enPassantTarget.row &&
+            move.col === enPassantTarget.col &&
+            !board[move.row][move.col];
+
           allMoves.push({
             from: { row, col },
             to: { row: move.row, col: move.col },
-            type: "normal",
+            type: isEnPassantMove ? "enPassant" : "normal",
           });
         }
       }
@@ -251,7 +284,8 @@ export const getAllLegalMoves = (board, color, castlingRights) => {
               col,
               spawnSquare.row,
               spawnSquare.col,
-              color
+              color,
+              enPassantTarget
             )
           ) {
             continue; // Skip this decombination - would leave king in check
@@ -286,8 +320,15 @@ export const getAllLegalMoves = (board, color, castlingRights) => {
  * @param {Object} castlingRights - Current castling rights
  * @returns {Object} { newBoard, newCastlingRights }
  */
-export const applyMove = (board, move, currentTurn, castlingRights) => {
+export const applyMove = (
+  board,
+  move,
+  currentTurn,
+  castlingRights,
+  enPassantTarget = null
+) => {
   let newBoard;
+  let newEnPassantTarget = null;
 
   switch (move.type) {
     case "castling":
@@ -304,6 +345,17 @@ export const applyMove = (board, move, currentTurn, castlingRights) => {
       newBoard[move.from.row][move.from.col] = "";
       break;
     }
+
+    case "enPassant":
+      newBoard = makeMove(
+        board,
+        move.from.row,
+        move.from.col,
+        move.to.row,
+        move.to.col,
+        enPassantTarget
+      );
+      break;
 
     case "combine": {
       const { piece1, piece2 } = move.pieces;
@@ -339,6 +391,14 @@ export const applyMove = (board, move, currentTurn, castlingRights) => {
         move.from.row,
         move.from.col,
         move.to.row,
+        move.to.col,
+        enPassantTarget
+      );
+      newEnPassantTarget = getEnPassantTargetAfterMove(
+        board,
+        move.from.row,
+        move.from.col,
+        move.to.row,
         move.to.col
       );
       break;
@@ -352,7 +412,7 @@ export const applyMove = (board, move, currentTurn, castlingRights) => {
     castlingRights
   );
 
-  return { newBoard, newCastlingRights };
+  return { newBoard, newCastlingRights, newEnPassantTarget };
 };
 
 /**
@@ -433,8 +493,13 @@ const updateCastlingRights = (board, move, currentTurn, castlingRights) => {
  * @param {Object} castlingRights - Castling rights
  * @returns {number} Number of legal moves
  */
-export const countLegalMoves = (board, color, castlingRights) => {
-  return getAllLegalMoves(board, color, castlingRights).length;
+export const countLegalMoves = (
+  board,
+  color,
+  castlingRights,
+  enPassantTarget = null
+) => {
+  return getAllLegalMoves(board, color, castlingRights, enPassantTarget).length;
 };
 
 /**

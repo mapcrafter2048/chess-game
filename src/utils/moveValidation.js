@@ -6,7 +6,15 @@ export const isValidPosition = (row, col) => {
 };
 
 // Validate pawn moves
-export const isValidPawnMove = (board, fromRow, fromCol, toRow, toCol, piece) => {
+export const isValidPawnMove = (
+    board,
+    fromRow,
+    fromCol,
+    toRow,
+    toCol,
+    piece,
+    enPassantTarget = null
+) => {
     const isWhite = isWhitePiece(piece);
     const direction = isWhite ? -1 : 1;
     const startRow = isWhite ? 6 : 1;
@@ -29,6 +37,19 @@ export const isValidPawnMove = (board, fromRow, fromCol, toRow, toCol, piece) =>
     // Capture diagonally
     if (colDiff === 1 && rowDiff === direction && board[toRow][toCol]) {
         return isOpponentPiece(piece, board[toRow][toCol]);
+    }
+
+    // En passant capture
+    if (
+        colDiff === 1 &&
+        rowDiff === direction &&
+        !board[toRow][toCol] &&
+        enPassantTarget &&
+        toRow === enPassantTarget.row &&
+        toCol === enPassantTarget.col
+    ) {
+        const capturedPawn = board[enPassantTarget.captureRow]?.[enPassantTarget.captureCol];
+        return !!capturedPawn && isOpponentPiece(piece, capturedPawn);
     }
 
     return false;
@@ -104,7 +125,15 @@ export const isPathClear = (board, fromRow, fromCol, toRow, toCol) => {
 };
 
 // Main validation function
-export const isValidMove = (board, fromRow, fromCol, toRow, toCol, allowFriendlyDestination = false) => {
+export const isValidMove = (
+    board,
+    fromRow,
+    fromCol,
+    toRow,
+    toCol,
+    allowFriendlyDestination = false,
+    enPassantTarget = null
+) => {
     // Can't move to same position
     if (fromRow === toRow && fromCol === toCol) {
         return false;
@@ -138,7 +167,7 @@ export const isValidMove = (board, fromRow, fromCol, toRow, toCol, allowFriendly
 
     switch (pieceType) {
         case PIECES.PAWN:
-            return isValidPawnMove(board, fromRow, fromCol, toRow, toCol, piece);
+            return isValidPawnMove(board, fromRow, fromCol, toRow, toCol, piece, enPassantTarget);
         case PIECES.ROOK:
             return isValidRookMove(board, fromRow, fromCol, toRow, toCol);
         case PIECES.KNIGHT:

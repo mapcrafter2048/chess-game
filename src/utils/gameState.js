@@ -10,11 +10,60 @@ export const copyBoard = (board) => {
 };
 
 // Execute a move on the board
-export const makeMove = (board, fromRow, fromCol, toRow, toCol) => {
+export const makeMove = (
+  board,
+  fromRow,
+  fromCol,
+  toRow,
+  toCol,
+  enPassantTarget = null
+) => {
   const newBoard = copyBoard(board);
+  const movingPiece = newBoard[fromRow][fromCol];
+
+  const isEnPassantCapture =
+    movingPiece &&
+    movingPiece.toLowerCase() === "p" &&
+    enPassantTarget &&
+    toRow === enPassantTarget.row &&
+    toCol === enPassantTarget.col &&
+    !newBoard[toRow][toCol];
+
+  if (isEnPassantCapture) {
+    newBoard[enPassantTarget.captureRow][enPassantTarget.captureCol] = "";
+  }
+
   newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
   newBoard[fromRow][fromCol] = "";
   return newBoard;
+};
+
+export const getEnPassantTargetAfterMove = (
+  board,
+  fromRow,
+  fromCol,
+  toRow,
+  toCol
+) => {
+  const movingPiece = board[fromRow]?.[fromCol];
+  if (!movingPiece || movingPiece.toLowerCase() !== "p") {
+    return null;
+  }
+
+  const isWhite = movingPiece === movingPiece.toUpperCase();
+  const direction = isWhite ? -1 : 1;
+  const startRow = isWhite ? 6 : 1;
+
+  if (fromCol !== toCol || fromRow !== startRow || toRow !== fromRow + 2 * direction) {
+    return null;
+  }
+
+  return {
+    row: fromRow + direction,
+    col: fromCol,
+    captureRow: toRow,
+    captureCol: toCol,
+  };
 };
 
 // Initialize game state

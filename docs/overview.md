@@ -10,6 +10,9 @@
 - [p2p-chess.tech](https://p2p-chess.tech)
 - [combinechess.games](https://combinechess.games)
 
+**Diagram Reference:**
+- See [UML Diagrams](./uml-diagrams.md) for Mermaid architecture and sequence diagrams
+
 ## Introduction
 
 This project is a modern, feature-rich chess game built using Next.js and Tailwind CSS. It implements a peer-to-peer (P2P) chess game where two players can play against each other in real-time using WebRTC technology. The game extends traditional chess with a unique piece combination system, allowing players to combine and decombine certain pieces to create powerful hybrid units.

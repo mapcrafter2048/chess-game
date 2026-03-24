@@ -66,7 +66,9 @@ const scoreMove = (board, move, currentTurn, ttMove = null) => {
 
     const { from, to } = move;
     const attacker = board[from.row][from.col];
-    const victim = board[to.row][to.col];
+    const victim = move.type === "enPassant"
+        ? board[from.row][to.col]
+        : board[to.row][to.col];
 
     // ============================================
     // 1. CAPTURE MOVES (MVV-LVA)
@@ -159,7 +161,9 @@ const movesMatch = (move1, move2) => {
 export const scoreMoveDetailed = (board, move, currentTurn) => {
     const { from, to } = move;
     const attacker = board[from.row][from.col];
-    const victim = board[to.row][to.col];
+    const victim = move.type === "enPassant"
+        ? board[from.row][to.col]
+        : board[to.row][to.col];
 
     let totalScore = 0;
     const breakdown = {
