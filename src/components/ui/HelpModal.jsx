@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 /**
  * HelpModal - Accessible help modal that explains game mechanics
@@ -8,27 +8,13 @@ import React, { useState, useEffect, useCallback } from "react";
  */
 const HelpModal = ({ isOpen, onClose, initialTab = 0 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const overlayRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
-      setActiveTab(initialTab);
+      overlayRef.current?.focus();
     }
-  }, [isOpen, initialTab]);
-
-  // Close on Escape
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    },
-    [isOpen, onClose]
-  );
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  }, [isOpen]);
 
   // Prevent body scroll when open
   useEffect(() => {
@@ -43,6 +29,12 @@ const HelpModal = ({ isOpen, onClose, initialTab = 0 }) => {
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      onClose();
+    }
+  };
 
   const tabs = [
     {
@@ -80,7 +72,7 @@ const HelpModal = ({ isOpen, onClose, initialTab = 0 }) => {
             <li><strong>Double-tap</strong> a piece or use the <span className="help-key">🔮 Combine</span> button.</li>
             <li>Purple-highlighted squares show eligible partners.</li>
             <li>Click a partner to merge.</li>
-            <li><strong>Placement Rule:</strong> The new hybrid piece will be placed on the square of the <strong>higher-value piece</strong>. If both pieces have the same value (e.g., Bishop and Knight), the hybrid remains on the <strong>first piece's square</strong>.</li>
+            <li><strong>Placement Rule:</strong> The new hybrid piece will be placed on the square of the <strong>higher-value piece</strong>. If both pieces have the same value (e.g., Bishop and Knight), the hybrid remains on the <strong>first piece&apos;s square</strong>.</li>
           </ul>
 
           <h3 className="help-section-title">Valid Combinations</h3>
@@ -123,7 +115,7 @@ const HelpModal = ({ isOpen, onClose, initialTab = 0 }) => {
             <li>Teal highlight shows the selected hybrid.</li>
             <li>Green squares show where the spawned piece can go (must be an adjacent empty square).</li>
             <li><strong>Split Rule:</strong> By default, the <strong>higher-value component</strong> of the hybrid stays on the original square, and the <strong>lower-value component</strong> moves to the new green square you select (for equal values like Bishop and Knight, the Bishop stays).</li>
-            <li><em>Example:</em> Whether it's called a Queen-Knight or a Knight-Queen hybrid, the <strong>Queen</strong> is the higher-value piece. When split, the <strong>Queen</strong> stays on the original square, and the <strong>Knight</strong> leaps to the adjacent green square you clicked.</li>
+            <li><em>Example:</em> Whether it&apos;s called a Queen-Knight or a Knight-Queen hybrid, the <strong>Queen</strong> is the higher-value piece. When split, the <strong>Queen</strong> stays on the original square, and the <strong>Knight</strong> leaps to the adjacent green square you clicked.</li>
           </ul>
 
           <div className="help-note">
@@ -217,7 +209,13 @@ const HelpModal = ({ isOpen, onClose, initialTab = 0 }) => {
   ];
 
   return (
-    <div className="help-overlay" onClick={onClose}>
+    <div
+      ref={overlayRef}
+      className="help-overlay focus:outline-none"
+      onClick={onClose}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
+    >
       <div
         className="help-modal"
         onClick={(e) => e.stopPropagation()}

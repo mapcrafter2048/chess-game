@@ -74,6 +74,7 @@ const ChessBoard = ({
   // Double-tap tracking refs
   const lastClickedSquare = useRef(null);
   const lastClickTime = useRef(0);
+  const boardRootRef = useRef(null);
 
   // Determine if board should be flipped (Black player in multiplayer)
   const isBoardFlipped =
@@ -236,20 +237,19 @@ const ChessBoard = ({
     selectedTimeControl,
   });
 
-  // Keyboard handler
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.key === "Escape") {
-        if (combineMode) {
-          exitCombineMode();
-        } else if (deCombine.mode) {
-          handleDeCombineEscape();
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [combineMode, deCombine.mode, exitCombineMode, handleDeCombineEscape]);
+  const handleBoardKeyDown = (e) => {
+    if (e.key !== "Escape") return;
+
+    if (combineMode) {
+      exitCombineMode();
+    } else if (deCombine.mode) {
+      handleDeCombineEscape();
+    }
+  };
+
+  const focusBoardRoot = () => {
+    boardRootRef.current?.focus();
+  };
 
   // Route square clicks
   const handleSquareClick = (row, col) => {
@@ -447,7 +447,13 @@ const ChessBoard = ({
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 bg-[var(--bg-primary)] overflow-x-hidden">
+    <div
+      ref={boardRootRef}
+      className="flex flex-col flex-1 min-h-0 bg-[var(--bg-primary)] overflow-x-hidden focus:outline-none"
+      onKeyDown={handleBoardKeyDown}
+      onMouseDownCapture={focusBoardRoot}
+      tabIndex={0}
+    >
       {/* Status Strip */}
       <div className="w-full px-3 py-1.5 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] text-center flex-shrink-0">
         <span className="text-sm font-medium text-[var(--text-primary)]">

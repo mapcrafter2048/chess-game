@@ -34,18 +34,9 @@ export default function Home() {
   const [helpModalOpen, setHelpModalOpen] = useState(false);
   const [helpModalTab, setHelpModalTab] = useState(0);
 
-  // Listen for help modal open events from footer
-  useEffect(() => {
-    const handleOpenHelp = (e) => {
-      if (e.detail?.tabIndex !== undefined) {
-        setHelpModalTab(e.detail.tabIndex);
-      } else {
-        setHelpModalTab(0);
-      }
-      setHelpModalOpen(true);
-    };
-    window.addEventListener("open-help-modal", handleOpenHelp);
-    return () => window.removeEventListener("open-help-modal", handleOpenHelp);
+  const openHelpModal = useCallback((tabIndex = 0) => {
+    setHelpModalTab(tabIndex);
+    setHelpModalOpen(true);
   }, []);
 
   const timerStateRef = useRef({
@@ -590,10 +581,7 @@ export default function Home() {
         selectedTimeControl={selectedTimeControl}
         onTimeControlChange={setSelectedTimeControl}
         isGameStarted={(webRTC.isConnected || webRTC.gameMode === "vsEngine") && !gameState.gameStatus?.isGameOver}
-        onOpenHelp={() => {
-          setHelpModalTab(0);
-          setHelpModalOpen(true);
-        }}
+        onOpenHelp={() => openHelpModal(0)}
       />
 
       {webRTC.error && (
@@ -632,9 +620,10 @@ export default function Home() {
         selectedTimeControl={selectedTimeControl}
       />
 
-      <Footer />
+      <Footer onOpenHelp={openHelpModal} />
 
       <HelpModal
+        key={helpModalOpen ? `help-modal-${helpModalTab}` : "help-modal-closed"}
         isOpen={helpModalOpen}
         onClose={() => setHelpModalOpen(false)}
         initialTab={helpModalTab}

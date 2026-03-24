@@ -6,7 +6,7 @@ import React from "react";
  * Footer component - Responsive footer for all screen sizes
  * Contains: Logo, contact emails, social links, extra fields, copyright
  */
-const Footer = () => {
+const Footer = ({ onOpenHelp = null }) => {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -39,10 +39,7 @@ const Footer = () => {
             </li>
             <li>
               <button
-                onClick={() => {
-                  const event = new CustomEvent("open-help-modal");
-                  window.dispatchEvent(event);
-                }}
+                onClick={() => onOpenHelp?.(0)}
                 className="footer-link footer-link-btn"
               >
                 ❓ How to Play
@@ -93,10 +90,7 @@ const Footer = () => {
             </li>
             <li>
               <button
-                onClick={() => {
-                  const event = new CustomEvent("open-help-modal", { detail: { tabIndex: 1 } });
-                  window.dispatchEvent(event);
-                }}
+                onClick={() => onOpenHelp?.(1)}
                 className="footer-link footer-link-btn"
               >
                 <span className="footer-feature">🔮 Piece Merging</span>
@@ -104,10 +98,7 @@ const Footer = () => {
             </li>
             <li>
               <button
-                onClick={() => {
-                  const event = new CustomEvent("open-help-modal", { detail: { tabIndex: 2 } });
-                  window.dispatchEvent(event);
-                }}
+                onClick={() => onOpenHelp?.(2)}
                 className="footer-link footer-link-btn"
               >
                 <span className="footer-feature">⚡ Piece Splitting</span>
