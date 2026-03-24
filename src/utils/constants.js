@@ -21,12 +21,12 @@ export const COLORS = {
 
 // Piece symbols mapping
 export const PIECE_SYMBOLS = {
-  K: "♚",
-  Q: "♛",
-  R: "♜",
-  B: "♝",
-  N: "♞",
-  P: "♟",
+  K: "♔",
+  Q: "♕",
+  R: "♖",
+  B: "♗",
+  N: "♘",
+  P: "♙",
   k: "♚",
   q: "♛",
   r: "♜",
