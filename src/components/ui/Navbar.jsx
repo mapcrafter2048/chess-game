@@ -85,6 +85,7 @@ const Navbar = ({
   selectedTimeControl,
   onTimeControlChange,
   isGameStarted = false,
+  onOpenHelp = null,
 }) => {
   const [receiverIdInput, setReceiverIdInput] = useState("");
   const [showCopied, setShowCopied] = useState(false);
@@ -247,6 +248,18 @@ const Navbar = ({
             {getModeBadge()}
             {getTurnIndicator()}
           </div>
+
+          {/* Help button - always visible */}
+          <button
+            onClick={onOpenHelp}
+            className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-[var(--bg-elevated)] transition-colors text-[var(--text-muted)] hover:text-[var(--accent-primary)]"
+            title="How to Play"
+            aria-label="How to Play"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
         </div>
 
         {/* Desktop: Center/Right controls */}
@@ -268,6 +281,7 @@ const Navbar = ({
 
               {/* AI Game */}
               <button
+                id="play-ai-btn"
                 onClick={() => onStartEngineGame(selectedTimeControl)}
                 disabled={isGameStarted}
                 className={`
@@ -276,7 +290,7 @@ const Navbar = ({
                   ${isGameStarted 
                     ? "opacity-50 cursor-not-allowed bg-[var(--bg-tertiary)] text-[var(--text-muted)]" 
                     : "bg-purple-600 hover:bg-purple-700 text-white"
-                  }
+                  } focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)]
                 `}
               >
                 <span>🤖</span>
@@ -295,6 +309,7 @@ const Navbar = ({
 
               {/* Multiplayer */}
               <button
+                id="create-game-btn"
                 onClick={handleInitiateCall}
                 disabled={isGameStarted}
                 className={`
@@ -303,7 +318,7 @@ const Navbar = ({
                   ${isGameStarted 
                     ? "opacity-50 cursor-not-allowed bg-[var(--bg-tertiary)] text-[var(--text-muted)]" 
                     : "bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white"
-                  }
+                  } focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)]
                 `}
               >
                 <span>🎮</span>

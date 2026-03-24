@@ -6,7 +6,7 @@ import { getSquareStyling, getPieceStyling } from "../helpers/squareStyling.js";
 
 /**
  * ChessSquare component - renders a single square on the chess board
- * Uses CSS custom property for dynamic sizing based on viewport
+ * Now includes optional rank/file labels rendered INSIDE the square (chess.com style)
  */
 const ChessSquare = ({
   row,
@@ -16,6 +16,8 @@ const ChessSquare = ({
   highlightState,
   onClick,
   isBoardFlipped = false,
+  rankLabel = null,
+  fileLabel = null,
 }) => {
   const styling = getSquareStyling(isLightSquare, highlightState);
   const { squareColor, ringClass, opacity, extraEffects } = styling;
@@ -26,7 +28,12 @@ const ChessSquare = ({
 
   const pieceStyling = piece ? getPieceStyling(piece) : {};
   const pieceColorClass =
-    piece && piece === piece.toUpperCase() ? "text-white" : "text-gray-900";
+    piece && piece === piece.toUpperCase() ? "text-[#EDE8D5]" : "text-gray-900";
+
+  // Coordinate label color: contrasting with the square
+  const coordColorClass = isLightSquare
+    ? "text-amber-800/70"
+    : "text-amber-100/70";
 
   return (
     <div
@@ -34,12 +41,27 @@ const ChessSquare = ({
       className={`chess-square flex items-center justify-center ${squareColor} ${opacity}
                 hover:brightness-110 transition-all duration-150 cursor-pointer relative ${ringClass} ${extraEffects} select-none`}
     >
+      {/* Rank label - top-left corner of the square */}
+      {rankLabel && (
+        <span
+          className={`board-coord board-coord-rank ${coordColorClass}`}
+        >
+          {rankLabel}
+        </span>
+      )}
+
+      {/* File label - bottom-right corner of the square */}
+      {fileLabel && (
+        <span
+          className={`board-coord board-coord-file ${coordColorClass}`}
+        >
+          {fileLabel}
+        </span>
+      )}
+
       {piece && (
         <div
           className="relative transform transition-transform pointer-events-none"
-          style={{
-            transform: isBoardFlipped ? "rotate(180deg)" : "rotate(0deg)",
-          }}
         >
           <span
             className={`chess-piece-icon select-none ${pieceColorClass}`}

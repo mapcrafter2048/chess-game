@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import ChessBoard from "../components/ChessBoard.jsx";
 import Navbar from "../components/ui/Navbar.jsx";
+import Footer from "../components/ui/Footer.jsx";
+import HelpModal from "../components/ui/HelpModal.jsx";
 import useWebRTC from "../hooks/useWebRTC.js";
 import { createInitialGameState } from "../utils/gameState.js";
 import { COLORS } from "../utils/constants.js";
@@ -29,6 +31,13 @@ export default function Home() {
   const [selectedTimeControl, setSelectedTimeControl] = useState(
     TIMER_CONFIG.DEFAULT
   );
+  const [helpModalOpen, setHelpModalOpen] = useState(false);
+  const [helpModalTab, setHelpModalTab] = useState(0);
+
+  const openHelpModal = useCallback((tabIndex = 0) => {
+    setHelpModalTab(tabIndex);
+    setHelpModalOpen(true);
+  }, []);
 
   const timerStateRef = useRef({
     whiteTime: TIMER_CONFIG.getTimeValue(TIMER_CONFIG.DEFAULT),
@@ -572,6 +581,7 @@ export default function Home() {
         selectedTimeControl={selectedTimeControl}
         onTimeControlChange={setSelectedTimeControl}
         isGameStarted={(webRTC.isConnected || webRTC.gameMode === "vsEngine") && !gameState.gameStatus?.isGameOver}
+        onOpenHelp={() => openHelpModal(0)}
       />
 
       {webRTC.error && (
@@ -608,6 +618,15 @@ export default function Home() {
         onDisconnect={webRTC.disconnect}
         sendDisconnectNotification={webRTC.sendDisconnectNotification}
         selectedTimeControl={selectedTimeControl}
+      />
+
+      <Footer onOpenHelp={openHelpModal} />
+
+      <HelpModal
+        key={helpModalOpen ? `help-modal-${helpModalTab}` : "help-modal-closed"}
+        isOpen={helpModalOpen}
+        onClose={() => setHelpModalOpen(false)}
+        initialTab={helpModalTab}
       />
     </div>
   );
