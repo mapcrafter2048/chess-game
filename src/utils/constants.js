@@ -33,16 +33,19 @@ export const PIECE_SYMBOLS = {
   b: "♝\uFE0E",
   n: "♞\uFE0E",
   p: "♟\uFE0E",
-  // Hybrid pieces (white)
-  RB: "⚔",
-  RN: "🩏",
-  BN: "🩐",
-  QN: "🩎",
+  // Hybrid pieces (white) — use the FILLED/solid glyphs (same as black),
+  // just like standard pieces use ♚♛♜♝♞♟ for both colors.
+  // CSS color makes them appear white. The "White" Unicode variants
+  // (U+1FA4E-50) are hollow/outlined and don't match the solid style.
+  RB: "⚔\uFE0E",
+  RN: "🩒\uFE0E",
+  BN: "🩓\uFE0E",
+  QN: "🩑\uFE0E",
   // Hybrid pieces (black)
-  rb: "⚔",
-  rn: "🩒",
-  bn: "🩓",
-  qn: "🩑",
+  rb: "⚔\uFE0E",
+  rn: "🩒\uFE0E",
+  bn: "🩓\uFE0E",
+  qn: "🩑\uFE0E",
 };
 
 // Hybrid piece display names

@@ -33,6 +33,7 @@ export default function Home() {
   );
   const [helpModalOpen, setHelpModalOpen] = useState(false);
   const [helpModalTab, setHelpModalTab] = useState(0);
+  const [navbarHighlight, setNavbarHighlight] = useState(null);
 
   const openHelpModal = useCallback((tabIndex = 0) => {
     setHelpModalTab(tabIndex);
@@ -582,6 +583,8 @@ export default function Home() {
         onTimeControlChange={setSelectedTimeControl}
         isGameStarted={(webRTC.isConnected || webRTC.gameMode === "vsEngine") && !gameState.gameStatus?.isGameOver}
         onOpenHelp={() => openHelpModal(0)}
+        highlightTarget={navbarHighlight}
+        onClearHighlight={() => setNavbarHighlight(null)}
       />
 
       {webRTC.error && (
@@ -620,7 +623,7 @@ export default function Home() {
         selectedTimeControl={selectedTimeControl}
       />
 
-      <Footer onOpenHelp={openHelpModal} />
+      <Footer onOpenHelp={openHelpModal} onHighlightNavbar={setNavbarHighlight} />
 
       <HelpModal
         key={helpModalOpen ? `help-modal-${helpModalTab}` : "help-modal-closed"}

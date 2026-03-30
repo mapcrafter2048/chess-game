@@ -86,6 +86,8 @@ const Navbar = ({
   onTimeControlChange,
   isGameStarted = false,
   onOpenHelp = null,
+  highlightTarget = null,
+  onClearHighlight = null,
 }) => {
   const [receiverIdInput, setReceiverIdInput] = useState("");
   const [showCopied, setShowCopied] = useState(false);
@@ -131,6 +133,17 @@ const Navbar = ({
       return () => clearTimeout(resetTimer);
     }
   }, [connectionState]);
+
+  // React to highlightTarget prop: open mobile menu and auto-clear after 2s
+  useEffect(() => {
+    if (highlightTarget) {
+      setMobileMenuOpen(true);
+      const timer = setTimeout(() => {
+        onClearHighlight?.();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightTarget, onClearHighlight]);
 
   const handleInitiateCall = async () => {
     try {
@@ -460,12 +473,15 @@ const Navbar = ({
 
                 <div className="flex gap-2">
                   <button
+                    id="mobile-play-ai-btn"
                     onClick={() => {
                       onStartEngineGame(selectedTimeControl);
                       setMobileMenuOpen(false);
                     }}
                     disabled={isGameStarted}
-                    className="flex-1 px-3 py-2 text-sm rounded font-medium bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
+                    className={`flex-1 px-3 py-2 text-sm rounded font-medium bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 transition-all duration-300 ${
+                      highlightTarget === 'play-ai' ? 'ring-2 ring-white ring-offset-2 ring-offset-[var(--bg-secondary)] animate-pulse' : ''
+                    }`}
                   >
                     🤖 Play AI
                   </button>
@@ -486,11 +502,14 @@ const Navbar = ({
                 <div className="h-px bg-[var(--border-color)]" />
 
                 <button
+                  id="mobile-create-game-btn"
                   onClick={() => {
                     handleInitiateCall();
                   }}
                   disabled={isGameStarted}
-                  className="w-full px-3 py-2 text-sm rounded font-medium bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white disabled:opacity-50"
+                  className={`w-full px-3 py-2 text-sm rounded font-medium bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white disabled:opacity-50 transition-all duration-300 ${
+                    highlightTarget === 'create-game' ? 'ring-2 ring-white ring-offset-2 ring-offset-[var(--bg-secondary)] animate-pulse' : ''
+                  }`}
                 >
                   🎮 Create Multiplayer Game
                 </button>

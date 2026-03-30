@@ -6,7 +6,7 @@ import React from "react";
  * Footer component - Responsive footer for all screen sizes
  * Contains: Logo, contact emails, social links, extra fields, copyright
  */
-const Footer = ({ onOpenHelp = null }) => {
+const Footer = ({ onOpenHelp = null, onHighlightNavbar = null }) => {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -66,9 +66,7 @@ const Footer = ({ onOpenHelp = null }) => {
               <button
                 onClick={() => {
                   window.scrollTo({ top: 0, behavior: "smooth" });
-                  setTimeout(() => {
-                    document.getElementById("play-ai-btn")?.focus();
-                  }, 300);
+                  onHighlightNavbar?.('play-ai');
                 }}
                 className="footer-link footer-link-btn"
               >
@@ -79,9 +77,7 @@ const Footer = ({ onOpenHelp = null }) => {
               <button
                 onClick={() => {
                   window.scrollTo({ top: 0, behavior: "smooth" });
-                  setTimeout(() => {
-                    document.getElementById("create-game-btn")?.focus();
-                  }, 300);
+                  onHighlightNavbar?.('create-game');
                 }}
                 className="footer-link footer-link-btn"
               >
