@@ -247,11 +247,11 @@ const Navbar = ({
           <div className="flex items-center gap-2">
             <img
               src="/logo.png"
-              alt="P2P Chess"
+              alt="MergeChess"
               className="w-7 h-7"
             />
             <span className="text-base font-semibold text-[var(--text-primary)] hidden sm:inline">
-              P2P Chess
+              MergeChess
             </span>
           </div>
           

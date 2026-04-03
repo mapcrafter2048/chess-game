@@ -17,10 +17,10 @@ const Footer = ({ onOpenHelp = null, onHighlightNavbar = null }) => {
           <div className="footer-logo-row">
             <img
               src="/logo.png"
-              alt="Combine Chess"
+              alt="MergeChess"
               className="footer-logo"
             />
-            <span className="footer-logo-text">Combine Chess</span>
+            <span className="footer-logo-text">MergeChess</span>
           </div>
           <p className="footer-description">
             An chess variant where you can merge and split pieces.
