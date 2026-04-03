@@ -136,7 +136,7 @@ const Footer = ({ onOpenHelp = null, onHighlightNavbar = null }) => {
       </div>
 
       {/* Bottom bar */}
-      <div className="footer-bottom">
+      {/* <div className="footer-bottom">
         <div className="footer-bottom-content">
           <span className="footer-copyright">
             © {currentYear} Combine Chess. All rights reserved.
@@ -147,7 +147,7 @@ const Footer = ({ onOpenHelp = null, onHighlightNavbar = null }) => {
             <a href="#" className="footer-bottom-link">Terms of Service</a>
           </div>
         </div>
-      </div>
+      </div> */}
     </footer>
   );
 };
