@@ -79,6 +79,7 @@ export const useMoveHandler = (
         currentTurn: newTurn,
         moveHistory: newMoveHistory,
         castlingRights: newCastlingRights,
+        enPassantTarget: null,
       });
       setMessage(statusMessage);
       setSelectedSquare(null);
@@ -183,7 +184,8 @@ export const useMoveHandler = (
               fromCol,
               row,
               col,
-              gameState.currentTurn
+              gameState.currentTurn,
+              gameState.enPassantTarget
             )
           ) {
             setMessage(
@@ -213,8 +215,15 @@ export const useMoveHandler = (
           // Save state for undo
           const stateWithUndo = saveStateForUndo(gameState);
 
+          // Check if this is an en passant capture
+          const isEnPassantCapture = isPawn &&
+            gameState.enPassantTarget &&
+            row === gameState.enPassantTarget.row &&
+            col === gameState.enPassantTarget.col &&
+            !gameState.board[row][col];
+
           // Execute the move
-          const capturedPiece = gameState.board[row][col];
+          let capturedPiece = gameState.board[row][col];
           const newBoard = makeMove(
             gameState.board,
             fromRow,
@@ -222,7 +231,22 @@ export const useMoveHandler = (
             row,
             col
           );
+
+          // Handle en passant: remove the captured pawn
+          if (isEnPassantCapture) {
+            capturedPiece = gameState.board[fromRow][col]; // The pawn being captured
+            newBoard[fromRow][col] = ''; // Remove the captured pawn
+          }
+
           const newTurn = switchTurn(gameState.currentTurn);
+
+          // Compute en passant target for next move
+          let newEnPassantTarget = null;
+          if (isPawn && Math.abs(row - fromRow) === 2) {
+            // Pawn moved two squares — set en passant target to the square it passed through
+            const epRow = (fromRow + row) / 2;
+            newEnPassantTarget = { row: epRow, col: col };
+          }
 
           // Update castling rights
           let newCastlingRights = { ...stateWithUndo.castlingRights };
@@ -294,6 +318,7 @@ export const useMoveHandler = (
             moveHistory: newMoveHistory,
             capturedPieces: newCapturedPieces,
             castlingRights: newCastlingRights,
+            enPassantTarget: newEnPassantTarget,
           });
           setMessage(statusMessage);
           setSelectedSquare(null);
@@ -307,7 +332,8 @@ export const useMoveHandler = (
             gameState.board,
             row,
             col,
-            gameState.currentTurn
+            gameState.currentTurn,
+            gameState.enPassantTarget
           );
           const safeMoves = moves.filter(
             (move) =>
@@ -317,7 +343,8 @@ export const useMoveHandler = (
                 col,
                 move.row,
                 move.col,
-                gameState.currentTurn
+                gameState.currentTurn,
+                gameState.enPassantTarget
               )
           );
 
@@ -380,7 +407,8 @@ export const useMoveHandler = (
             gameState.board,
             row,
             col,
-            gameState.currentTurn
+            gameState.currentTurn,
+            gameState.enPassantTarget
           );
           const safeMoves = moves.filter(
             (move) =>
@@ -390,7 +418,8 @@ export const useMoveHandler = (
                 col,
                 move.row,
                 move.col,
-                gameState.currentTurn
+                gameState.currentTurn,
+                gameState.enPassantTarget
               )
           );
 

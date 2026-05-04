@@ -36,7 +36,7 @@ import {
  * @param {Object} castlingRights - Castling rights { white: {...}, black: {...} }
  * @returns {Array} Array of move objects
  */
-export const getAllLegalMoves = (board, color, castlingRights) => {
+export const getAllLegalMoves = (board, color, castlingRights, enPassantTarget = null) => {
   const allMoves = [];
 
   // ============================================
@@ -47,11 +47,11 @@ export const getAllLegalMoves = (board, color, castlingRights) => {
       const piece = board[row][col];
       if (!piece || getPieceColor(piece) !== color) continue;
 
-      const moves = calculateLegalMoves(board, row, col, color);
+      const moves = calculateLegalMoves(board, row, col, color, enPassantTarget);
 
       for (const move of moves) {
         // CRITICAL: Filter out moves that would leave king in check
-        if (wouldBeInCheck(board, row, col, move.row, move.col, color)) {
+        if (wouldBeInCheck(board, row, col, move.row, move.col, color, enPassantTarget)) {
           continue; // Skip this move - it's illegal
         }
 
@@ -271,7 +271,40 @@ export const getAllLegalMoves = (board, color, castlingRights) => {
     }
   }
 
-  // TODO Phase 2: En passant moves (currently not implemented in moveCalculator)
+  // ============================================
+  // 5. EN PASSANT MOVES
+  // ============================================
+  if (enPassantTarget) {
+    const epRow = enPassantTarget.row;
+    const epCol = enPassantTarget.col;
+    // The capturing pawn must be on the row adjacent to the ep target
+    const capturingPawnRow = color === COLORS.WHITE ? epRow + 1 : epRow - 1;
+
+    for (const colOffset of [-1, 1]) {
+      const fromCol = epCol + colOffset;
+      if (fromCol < 0 || fromCol > 7) continue;
+
+      const piece = board[capturingPawnRow]?.[fromCol];
+      if (!piece || piece.toLowerCase() !== 'p' || getPieceColor(piece) !== color) continue;
+
+      // Check that this en passant move doesn't leave king in check
+      if (!wouldBeInCheck(board, capturingPawnRow, fromCol, epRow, epCol, color, enPassantTarget)) {
+        // Check if this move was already generated as a normal move (it shouldn't be,
+        // since the target square is empty, but be safe)
+        const alreadyExists = allMoves.some(
+          m => m.from.row === capturingPawnRow && m.from.col === fromCol &&
+               m.to.row === epRow && m.to.col === epCol
+        );
+        if (!alreadyExists) {
+          allMoves.push({
+            from: { row: capturingPawnRow, col: fromCol },
+            to: { row: epRow, col: epCol },
+            type: 'en_passant',
+          });
+        }
+      }
+    }
+  }
 
   return allMoves;
 };
@@ -328,6 +361,16 @@ export const applyMove = (board, move, currentTurn, castlingRights) => {
       newBoard = copyBoard(board);
       newBoard[move.from.row][move.from.col] = move.assignment.staying;
       newBoard[move.to.row][move.to.col] = move.assignment.spawning;
+      break;
+    }
+
+    case "en_passant": {
+      newBoard = copyBoard(board);
+      // Move the pawn to the target square
+      newBoard[move.to.row][move.to.col] = newBoard[move.from.row][move.from.col];
+      newBoard[move.from.row][move.from.col] = "";
+      // Remove the captured pawn (same column as target, same row as source)
+      newBoard[move.from.row][move.to.col] = "";
       break;
     }
 
@@ -433,8 +476,8 @@ const updateCastlingRights = (board, move, currentTurn, castlingRights) => {
  * @param {Object} castlingRights - Castling rights
  * @returns {number} Number of legal moves
  */
-export const countLegalMoves = (board, color, castlingRights) => {
-  return getAllLegalMoves(board, color, castlingRights).length;
+export const countLegalMoves = (board, color, castlingRights, enPassantTarget = null) => {
+  return getAllLegalMoves(board, color, castlingRights, enPassantTarget).length;
 };
 
 /**

@@ -93,6 +93,7 @@ export const usePromotion = (gameState, setGameState, setMessage) => {
         currentTurn: newTurn,
         moveHistory: newMoveHistory,
         capturedPieces: newCapturedPieces,
+        enPassantTarget: null,
       });
 
       setPromotionDialog({

@@ -342,6 +342,7 @@ export const useDeCombineMode = (gameState, setGameState, setMessage) => {
       ...gameState,
       board: result.board,
       currentTurn: gameState.currentTurn === "white" ? "black" : "white",
+      enPassantTarget: null,
     };
 
     const historyEntry = {

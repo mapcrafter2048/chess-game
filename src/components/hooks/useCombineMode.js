@@ -216,6 +216,7 @@ export const useCombineMode = (gameState, setGameState, setMessage) => {
         board: result.board,
         currentTurn: newTurn,
         moveHistory: newMoveHistory,
+        enPassantTarget: null,
       });
 
       // Set success message AFTER exiting combine mode

@@ -24,11 +24,11 @@ export const isPlayerInCheck = (board, color) => {
  * @param {Object} castlingRights - Current castling rights
  * @returns {Promise<boolean>} True if the player has legal moves
  */
-export const hasLegalMoves = async (board, color, castlingRights) => {
+export const hasLegalMoves = async (board, color, castlingRights, enPassantTarget = null) => {
   try {
     // Dynamically import to avoid circular dependencies
     const { getAllLegalMoves } = await import("../ai/chessRules.js");
-    const legalMoves = getAllLegalMoves(board, color, castlingRights);
+    const legalMoves = getAllLegalMoves(board, color, castlingRights, enPassantTarget);
     return legalMoves.length > 0;
   } catch (error) {
     console.error("Error checking legal moves:", error);
@@ -72,10 +72,10 @@ export const isStalemate = async (board, color, castlingRights) => {
  * @returns {Promise<Object>} Status object { isCheck, isCheckmate, isStalemate, isGameOver, winner }
  */
 export const getGameStatus = async (gameState) => {
-  const { board, currentTurn, castlingRights } = gameState;
+  const { board, currentTurn, castlingRights, enPassantTarget } = gameState;
 
   const inCheck = isPlayerInCheck(board, currentTurn);
-  const hasLegal = await hasLegalMoves(board, currentTurn, castlingRights);
+  const hasLegal = await hasLegalMoves(board, currentTurn, castlingRights, enPassantTarget);
 
   const isCheckmate = inCheck && !hasLegal;
   const isStalemate = !inCheck && !hasLegal;
